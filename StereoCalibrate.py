@@ -4,11 +4,9 @@ import re
 import cv2
 import numpy as np
 
-from share.tools.SerializeTools import config2json
+from tools.SerializeTools import config2json
 
-img_path = r'D:\fy.xie\fenx\fenx - General\Ubei\Stereo\stereo_img\1000W_12'
-# left_path = r'D:\fy.xie\fenx\fenx - General\Ubei\Stereo\stereo_img\1000W_12_20230331\left'
-# right_path = r'D:\fy.xie\fenx\fenx - General\Ubei\Stereo\stereo_img\1000W_12_20230331\right'
+img_path = r'D:\fy.xie\fenx\fenx - General\Ubei\Stereo\stereo_img\1000w_25'
 
 CHECKERBOARD = (11, 8)  # 棋盘格内角点数
 CHESSBOARD_SIZE = 1.5  # 棋盘格大小，单位mm

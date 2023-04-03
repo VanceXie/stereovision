@@ -1,18 +1,18 @@
 from math import ceil
 
-from share.tools.SerializeTools import *
-from share.tools.ImageOperate import *
+from tools.SerializeTools import *
+from tools.ImageOperate import *
 
-img_path = r'D:\fy.xie\fenx\fenx - General\Ubei\Stereo\stereo_img\1000W_12\obj4'
+img_path = r'D:\fy.xie\fenx\fenx - General\Ubei\Stereo\stereo_img\1000w_25'
 # resize_image('./images/image_test', scale_x=0.25, scale_y=0.25)
-left_image = cv2.imread(os.path.join(img_path, 'Image_73.bmp'))
-right_image = cv2.imread(os.path.join(img_path, 'Image_74.bmp'))
+left_image = cv2.imread(os.path.join(img_path, 'Image_35.bmp'))
+right_image = cv2.imread(os.path.join(img_path, 'Image_36.bmp'))
 
 imgcat_source = cat2images(left_image, right_image)
 HEIGHT = left_image.shape[0]
 WIDTH = left_image.shape[1]
 imageSize = (WIDTH, HEIGHT)
-cv2.imwrite('./images/imgcat_source.png', imgcat_source)
+cv2.imwrite(os.path.join(img_path, 'imgcat_out.png'), imgcat_source)
 
 calibrationParamsDict = json2config('./config/calibration_parameters.json')
 
@@ -58,9 +58,9 @@ rect_right_image = cv2.remap(right_image, right_map_x, right_map_y, cv2.INTER_CU
 
 imgcat_out = cat2images(rect_left_image, rect_right_image)
 
-cv2.imwrite('./images/imgcat_out.png', imgcat_out)
-cv2.imwrite('./images/rect_left_image.png', rect_left_image)
-cv2.imwrite('./images/rect_right_image.png', rect_right_image)
+cv2.imwrite(os.path.join(img_path, 'imgcat_out.png'), imgcat_out)
+cv2.imwrite(os.path.join(img_path, 'rect_left_image.png'), rect_left_image)
+cv2.imwrite(os.path.join(img_path, 'rect_right_image.png'), rect_right_image)
 
 # 鼠标点击事件
 count = 0
@@ -128,17 +128,11 @@ def on_mouse(event, x, y, flags, param):
 #             X = x1 * b / d
 #             Y = y1 * b / d
 #             print(f'点{count / 2}在空间中{X, Y, Z}')
-# ima = plt.imread('./images/rect_left_image.png')
-# fig = plt.figure(figsize=(38.4, 27.48))
-# fig.canvas.mpl_connect('button_press_event', on_press)
-# plt.imshow(ima)
-# plt.axis('off')
-# plt.show()
 
-ima = cv2.imread('./images/imgcat_out.png')
+ima = cv2.imread(os.path.join(img_path, 'imgcat_out.png'))
 cv2.namedWindow("disparity", cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)
 cv2.imshow("disparity", ima)
 cv2.setMouseCallback("disparity", on_mouse, calibration_params)
 
-cv2.waitKey(0)
-cv2.destroyAllWindows()
+if cv2.waitKey(0) == ord("q"):
+	cv2.destroyAllWindows()
