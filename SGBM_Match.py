@@ -33,7 +33,7 @@ except:
 preFilterCap = 100
 minDisparity = 0
 numDisparities = 120
-blockSize = 2
+blockSize = 0
 uniquenessRatio = 32
 speckleWindowSize = 225
 speckleRange = 1
@@ -43,8 +43,8 @@ disp12MaxDiff = 1
 stereo = cv2.StereoSGBM_create(minDisparity=minDisparity,
 							   numDisparities=numDisparities * 16,
 							   blockSize=2 * blockSize + 1,
-							   P1=8 * (2 * blockSize + 1) ** 2,
-							   P2=32 * (2 * blockSize + 1) ** 2,
+							   P1=8 * (2 * blockSize + 3) ** 2,
+							   P2=32 * (2 * blockSize + 3) ** 2,
 							   disp12MaxDiff=disp12MaxDiff,
 							   preFilterCap=preFilterCap,
 							   uniquenessRatio=uniquenessRatio,

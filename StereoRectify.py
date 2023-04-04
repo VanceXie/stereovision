@@ -5,8 +5,8 @@ from tools.ImageOperate import *
 
 img_path = r'D:\fy.xie\fenx\fenx - General\Ubei\Stereo\stereo_img\1000w_25'
 # resize_image('./images/image_test', scale_x=0.25, scale_y=0.25)
-left_image = cv2.imread(os.path.join(img_path, 'Image_35.bmp'))
-right_image = cv2.imread(os.path.join(img_path, 'Image_36.bmp'))
+left_image = cv2.imread(os.path.join(img_path, 'Image_29.bmp'))
+right_image = cv2.imread(os.path.join(img_path, 'Image_30.bmp'))
 
 imgcat_source = cat2images(left_image, right_image)
 HEIGHT = left_image.shape[0]
