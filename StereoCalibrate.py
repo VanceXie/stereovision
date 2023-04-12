@@ -6,11 +6,11 @@ import numpy as np
 
 from tools.SerializeTools import config2json
 
-img_path = r'D:\fy.xie\fenx\fenx - General\Ubei\Stereo\stereo_img\1000w_25'
+img_path = r'D:\fy.xie\fenx\fenx - General\Ubei\Stereo\stereo_img\1000w_edge'
 
 CHECKERBOARD = (11, 8)  # 棋盘格内角点数
 CHESSBOARD_SIZE = 1.5  # 棋盘格大小，单位mm
-criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.0001)
+criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 1000, 0.00001)
 
 img_points_l = []  # 存放左图像坐标系下角点位置
 img_points_r = []  # 存放右图像坐标系下角点位置
