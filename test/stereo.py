@@ -1,7 +1,8 @@
 import cv2
+import numpy as np
 import open3d as o3d
-from share.test.test import *
-from share.test.threeD import DepthColor2Cloud
+
+from threeD import DepthColor2Cloud
 
 # 畸变矫正脚本
 

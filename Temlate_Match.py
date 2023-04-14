@@ -1,17 +1,23 @@
 # -*- coding: UTF-8 -*-
-import json
+import os
+import re
+import time
 
 import cv2
 import numpy as np
 
 import StereoRectify
+from tools.DebugTools import timeit
 
 
-def get_depth(point_left, point_right, Q):
+def get_coordinate(point_left, point_right, Q):
 	d = point_left[0] - point_right[0]
 	b = 1 / Q[3, 2]
 	f = Q[2, 3]
-	return f * b / d
+	Z = f * b / d
+	X = point_left[0] * b / d
+	Y = point_left[1] * b / d
+	return [X, Y, Z]
 
 
 def is_gray(image):
@@ -21,57 +27,172 @@ def is_gray(image):
 	return len(image.shape) == 2 or (len(image.shape) == 3 and image.shape[2] == 1)
 
 
-def get_template(image, template):
-	# 读取模板图像和待匹配图像
-	if not is_gray(image):
-		img_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-	else:
-		img_gray = image
-	if not is_gray(template):
-		template_gray = cv2.cvtColor(template, cv2.COLOR_BGR2GRAY)
-	else:
-		template_gray = template
-	img_threshold = cv2.threshold(img_gray, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
-	template_threshold = cv2.threshold(template_gray, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
-	HEIGHT, WIDTH = img_gray.shape[:]
-	height, width = template_gray.shape[:]
-	# 模板匹配起始位置
+@timeit
+def get_match(image: np.ndarray, template: np.ndarray, method_flag: int = 5, start_coordinate: tuple = (0, 0), end_coordinate: tuple = (0, 0)):
+	"""
+	:param image: image of 3-D
+	:param template: image of 3-D
+	:param method_flag: index of [cv2.TM_SQDIFF, cv2.TM_SQDIFF_NORMED, cv2.TM_CCORR, cv2.TM_CCORR_NORMED, cv2.TM_CCOEFF, cv2.TM_CCOEFF_NORMED]
+	:param start_coordinate: start point of match, default (0, 0)
+	:param end_coordinate: start point of match, default (0, 0)
+	:return:
+	"""
+	# 转换为灰度图像
+	img_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+	template_gray = cv2.cvtColor(template, cv2.COLOR_BGR2GRAY)
+	height, width = template_gray.shape
 	# 设置模板匹配的起始位置
-	start_x = int(0.1 * WIDTH)
-	start_y = int(0.1 * HEIGHT)
+	start_x = start_coordinate[0]
+	start_y = start_coordinate[1]
 	# 限制模板匹配的搜索范围
-	roi = img_threshold[start_y:start_y + HEIGHT, start_x:start_x + WIDTH]
+	roi = img_gray[start_y:end_coordinate[1], start_x:end_coordinate[0]]
 	
 	# 进行模板匹配
-	result = cv2.matchTemplate(roi, template_threshold, cv2.TM_SQDIFF)
+	methods = [cv2.TM_SQDIFF, cv2.TM_SQDIFF_NORMED, cv2.TM_CCORR, cv2.TM_CCORR_NORMED, cv2.TM_CCOEFF, cv2.TM_CCOEFF_NORMED]
+	result = cv2.matchTemplate(roi, template_gray, methods[method_flag])
 	# 获取匹配结果中最大的相似度值和对应的位置
 	min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
 	
+	if method_flag in [0, 1]:
+		loc = min_loc
+	else:
+		loc = max_loc
 	# 计算匹配区域在原始图像中的坐标
-	top_left = (min_loc[0] + start_x, min_loc[1] + start_y)
-	bottom_right = (min_loc[0] + width + start_x, min_loc[1] + height + start_y)
-	aoi = image[top_left[1]:bottom_right[1], top_left[0]:bottom_right[0]]
+	top_left = (loc[0] + start_x, loc[1] + start_y)
+	bottom_right = (loc[0] + width - 1 + start_x, loc[1] + height - 1 + start_y)  # 模板大小为(width, height)，为保证抠出区域和模板大小相同，所以右下角坐标需-1
+	aoi = image[top_left[1]:bottom_right[1] + 1, top_left[0]:bottom_right[0] + 1]  # 切片时不包含最后一个值，所以要+1
 	return aoi, top_left, bottom_right
 
 
-img_left = cv2.imread(r"D:\fy.xie\fenx\fenx - General\Ubei\Stereo\stereo_img\1000w_edge\Image_5.bmp")
-img_right = cv2.imread(r"D:\fy.xie\fenx\fenx - General\Ubei\Stereo\stereo_img\1000w_edge\Image_6.bmp")
-rect_left_image, rect_right_image, Q = StereoRectify.get_rectify(img_left, img_right, r'./config/calibration_parameters.json', r'./config/rectify_parameters.json')
-for i in range(3):
-	path = r"D:\fy.xie\fenx\fenx - General\Ubei\Stereo\stereo_img\1000w_edge\template" + str(i + 1) + ".png"
-	template = cv2.imread(path)
-	# 寻找匹配区域
-	aoi_left, left_top_left, left_bottom_right = get_template(img_left, template)
-	aoi_right, right_top_left, right_bottom_right = get_template(img_right, aoi_left)
-	# 绘制匹配区域
-	cv2.rectangle(img_left, left_top_left, left_bottom_right, (0, 0, 255), 1)
-	cv2.rectangle(img_right, right_top_left, right_bottom_right, (0, 0, 255), 1)
-	result = cv2.hconcat([img_left, img_right])
-	# 匹配对应点
-	depth = get_depth(left_bottom_right, right_bottom_right, Q)
-	print(depth)
-	cv2.imwrite(r"D:\fy.xie\fenx\fenx - General\Ubei\Stereo\stereo_img\1000w_edge\result" + str(i + 1) + ".png", result)
-	i += 1
+def get_rect_center(top_left, bottom_right):
+	x1, y1 = top_left
+	x2, y2 = bottom_right
+	return ((x1 + x2) / 2, (y1 + y2) / 2)
+
+
+@timeit
+def init_plane(points, degree=1):
+	import matplotlib.pyplot as plt
+	from scipy import interpolate
+	
+	# # 计算平面拟合方程
+	# A = np.c_[points[:, 0], points[:, 1], np.ones(points.shape[0])]
+	# b = points[:, 2]
+	# coeff, r, rank, s = np.linalg.lstsq(A, b, rcond=None)
+	#
+	# # 输出拟合平面方程
+	# print("拟合平面方程为: z = {:.4f}x + {:.4f}y + {:.4f}".format(coeff[0], coeff[1], coeff[2]))
+	# # 绘制平面
+	# x, y = np.meshgrid(range(50, 80), range(0, 60))
+	# z = coeff[0] * x + coeff[1] * y + coeff[2]
+	# ax.plot_surface(x, y, z, alpha=0.5)
+	#
+	# plt.show()
+	# # return coeff
+	
+	# 使用 bisplrep 拟合曲面方程
+	tck = interpolate.bisplrep(points[:, 0], points[:, 1], points[:, 2], kx=degree, ky=degree)
+	# 生成曲面网格点
+	x_new, y_new = np.linspace(min(points[:, 0]), max(points[:, 0]), 100), np.linspace(min(points[:, 1]), max(points[:, 1]), 100)
+	x_new, y_new = np.meshgrid(x_new, y_new)
+	z_new = interpolate.bisplev(x_new[0, :], y_new[:, 0], tck)
+	# 绘制三维散点图和拟合面
+	fig = plt.figure()
+	ax = fig.add_subplot(111, projection='3d')
+	ax.scatter(points[:, 0], points[:, 1], points[:, 2])
+	ax.plot_surface(x_new, y_new, z_new.T, cmap='coolwarm')
+	ax.set_xlabel('X')
+	ax.set_ylabel('Y')
+	ax.set_zlabel('Z')
+	ax.set_title('Bivariate Spline Surface')
+	plt.show()
+	# coefficients = np.polyfit(points[:, 0], points[:, 1], degree)
+	return tck
+
+
+def get_plane_point(X, Y, tck):
+	from scipy import interpolate
+	
+	# 给定X,Y的值，计算Z
+	Z1 = interpolate.bisplev(X, Y, tck)
+	print(f"({X}, {Y}) 在曲面上的 Z1 值为 {Z1:.5f}")
+	
+	# # 计算平面拟合方程
+	# A = np.c_[points[:,0], points[:,1], np.ones(points.shape[0])]
+	# b = points[:,2]
+	# coeff, r, rank, s = np.linalg.lstsq(A, b, rcond=None)
+	# Z2 = coeff[0]*X + coeff[1]*Y + coeff[2]
+	# print(f"({X}, {Y}) 在曲面上的 Z2 值为 {Z2:.5f}")
+	
+	return (X, Y, Z1)
+
+
+def count_files_with_string(directory, string):
+	file_names = [f for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f)) and string in f]
+	file_count = len(file_names)
+	return file_count, file_names
+
+
+@timeit
+def get_coordinates(image_left: str, image_right: str, templates_dir: str, result_dir: str, calibration_json: str, rectify_json: str):
+	img_left = cv2.imread(image_left)
+	img_right = cv2.imread(image_right)
+	rect_left_image, rect_right_image, Q = StereoRectify.get_rectify(img_left, img_right, calibration_json, rectify_json)
+	
+	coordinates = []
+	# templates_num, filenames_list = count_files_with_string(templates_dir, 'template')
+	template_images = [(int(re.findall('\d+', f)[0]), cv2.imread(os.path.join(templates_dir, f), 1)) for f in os.listdir(templates_dir) if 'template' in f]
+	# filenames_list.sort(key=lambda l: int(re.findall('\d+', l)[0]))
+	template_images.sort()
+	if not os.path.exists(result_dir):
+		os.makedirs(result_dir)
+	for i, (num, template) in enumerate(template_images):
+		# path = os.path.join(templates_dir, filenames_list[i])
+		# template = cv2.imread(path)
+		# 寻找匹配区域
+		aoi_left, left_top_left, left_bottom_right = get_match(rect_left_image, template, 5, (1800, 0), (3840, 2748))
+		aoi_right, right_top_left, right_bottom_right = get_match(rect_right_image, aoi_left, 5, end_coordinate=(2000, 2748))
+		# 寻找匹配区域中心
+		left_mid = get_rect_center(left_top_left, left_bottom_right)
+		right_mid = get_rect_center(right_top_left, right_bottom_right)
+		# 绘制匹配区域与中心
+		cv2.rectangle(rect_left_image, left_top_left, left_bottom_right, (0, 0, 255), 1)
+		cv2.circle(rect_left_image, (int(left_mid[0]), int(left_mid[1])), 2, (0, 0, 255), -1)
+		cv2.rectangle(rect_right_image, right_top_left, right_bottom_right, (0, 0, 255), 1)
+		cv2.circle(rect_right_image, (int(right_mid[0]), int(right_mid[1])), 2, (0, 0, 255), -1)
+		result = np.concatenate((rect_left_image, rect_right_image), axis=1)
+		# 匹配对应点获取空间坐标[X,Y,Z]
+		coordinate = get_coordinate(left_mid, right_mid, Q)
+		coordinates.append(coordinate)
+		# print(coordinate)
+		cv2.imwrite(os.path.join(result_dir, str(num) + ".png"), result)
+	coordinates = np.asarray(coordinates)
+	return coordinates
+
+
+init_plate_coordinates = get_coordinates(r"D:\fy.xie\fenx\fenx - General\Ubei\Stereo\init_palte\Image_1.bmp",
+										 r"D:\fy.xie\fenx\fenx - General\Ubei\Stereo\init_palte\Image_2.bmp",
+										 r'D:\fy.xie\fenx\fenx - General\Ubei\Stereo\init_palte\template',
+										 r'D:\fy.xie\fenx\fenx - General\Ubei\Stereo\init_palte\result',
+										 r'./config/calibration_parameters.json',
+										 r'./config/rectify_parameters.json')
+tac = init_plane(init_plate_coordinates, 1)
+print(tac)
+# object_coordinates = get_coordinates(r"D:\fy.xie\fenx\fenx - General\Ubei\Stereo\stereo_img\1000w_edge\Image_5.bmp",
+# 									 r"D:\fy.xie\fenx\fenx - General\Ubei\Stereo\stereo_img\1000w_edge\Image_6.bmp",
+# 									 r'D:\fy.xie\fenx\fenx - General\Ubei\Stereo\stereo_img\1000w_edge\template',
+# 									 r'D:\fy.xie\fenx\fenx - General\Ubei\Stereo\stereo_img\1000w_edge\result',
+# 									 r'./config/calibration_parameters.json',
+# 									 r'./config/rectify_parameters.json')
+# points = {}
+# init_points = {}
+# for object_coordinate in object_coordinates:
+# 	init_X, init_Y, init_Z = get_plate_point(init_plate_coordinates, object_coordinate[0], object_coordinate[1])
+# 	depth = init_Z - object_coordinate[2]
+# 	points[f"{init_X, init_Y}"] = depth
+# 	init_points[f"{init_X, init_Y}"] = init_Z
+# print(object_coordinates)
+# print(init_points)
 # # 显示匹配结果
 # cv2.namedWindow('Result', cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)
 # cv2.imshow('Result', result)

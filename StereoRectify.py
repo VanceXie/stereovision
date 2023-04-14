@@ -54,7 +54,7 @@ def get_rectify(left_image, right_image, calibration_json, rectify_json):
 
 def on_mouse(event, x, y, flags, param):
 	global x1, x2, y1, y2, count, X, Y, Z
-	if event == cv2.EVENT_LBUTTONDOWN and flags & cv2.EVENT_FLAG_SHIFTKEY:
+	if event == cv2.EVENT_LBUTTONDOWN:
 		count += 1
 		if count % 2 == 1:
 			x1, y1 = x, y
@@ -94,6 +94,7 @@ def manual_select(left_image, right_image, calibration_json, rectify_json):
 	rect_left_image, rect_right_image, Q = get_rectify(left_image, right_image, calibration_json, rectify_json)
 	imgcat_out = cat2images(rect_left_image, rect_right_image)
 	# 鼠标点击事件
+	global x1, x2, y1, y2, count, X, Y, Z
 	count = 0
 	x1, y1 = 0, 0
 	x2, y2 = 0, 0
@@ -106,8 +107,8 @@ def manual_select(left_image, right_image, calibration_json, rectify_json):
 		cv2.destroyAllWindows()
 
 
-# left_image = cv2.imread(r"D:\fy.xie\fenx\fenx - General\Ubei\Stereo\stereo_img\1000w_edge\Image_5.bmp")
-# right_image = cv2.imread(r"D:\fy.xie\fenx\fenx - General\Ubei\Stereo\stereo_img\1000w_edge\Image_6.bmp")
+# left_image = cv2.imread(r"D:\fy.xie\fenx\fenx - General\Ubei\Stereo\stereo_img\1000w_edge\Image_243.bmp")
+# right_image = cv2.imread(r"D:\fy.xie\fenx\fenx - General\Ubei\Stereo\stereo_img\1000w_edge\Image_244.bmp")
 # manual_select(left_image, right_image, r'./config/calibration_parameters.json', r'./config/rectify_parameters.json')
 # cv2.namedWindow("result", cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)
 # cv2.imshow("result", rect_left_image)
