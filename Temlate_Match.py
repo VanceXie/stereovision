@@ -6,7 +6,7 @@ import time
 import cv2
 import numpy as np
 
-import StereoRectify
+from StereoRectify import get_rectify
 from tools.DebugTools import timeit
 
 
@@ -106,7 +106,6 @@ def init_plane(points, degree=1):
 	ax.set_zlabel('Z')
 	ax.set_title('Bivariate Spline Surface')
 	plt.show()
-	# coefficients = np.polyfit(points[:, 0], points[:, 1], degree)
 	return tck
 
 
@@ -127,22 +126,14 @@ def get_plane_point(X, Y, tck):
 	return (X, Y, Z1)
 
 
-def count_files_with_string(directory, string):
-	file_names = [f for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f)) and string in f]
-	file_count = len(file_names)
-	return file_count, file_names
-
-
 @timeit
 def get_coordinates(image_left: str, image_right: str, templates_dir: str, result_dir: str, calibration_json: str, rectify_json: str):
 	img_left = cv2.imread(image_left)
 	img_right = cv2.imread(image_right)
-	rect_left_image, rect_right_image, Q = StereoRectify.get_rectify(img_left, img_right, calibration_json, rectify_json)
+	rect_left_image, rect_right_image, Q = get_rectify(img_left, img_right, calibration_json, rectify_json)
 	
 	coordinates = []
-	# templates_num, filenames_list = count_files_with_string(templates_dir, 'template')
 	template_images = [(int(re.findall('\d+', f)[0]), cv2.imread(os.path.join(templates_dir, f), 1)) for f in os.listdir(templates_dir) if 'template' in f]
-	# filenames_list.sort(key=lambda l: int(re.findall('\d+', l)[0]))
 	template_images.sort()
 	if not os.path.exists(result_dir):
 		os.makedirs(result_dir)
@@ -170,29 +161,29 @@ def get_coordinates(image_left: str, image_right: str, templates_dir: str, resul
 	return coordinates
 
 
-init_plate_coordinates = get_coordinates(r"D:\fy.xie\fenx\fenx - General\Ubei\Stereo\init_palte\Image_1.bmp",
-										 r"D:\fy.xie\fenx\fenx - General\Ubei\Stereo\init_palte\Image_2.bmp",
-										 r'D:\fy.xie\fenx\fenx - General\Ubei\Stereo\init_palte\template',
-										 r'D:\fy.xie\fenx\fenx - General\Ubei\Stereo\init_palte\result',
+init_plate_coordinates = get_coordinates(r"D:\Fenkx\Fenkx - General\Ubei\Stereo\init_palte\Image_1.bmp",
+										 r"D:\Fenkx\Fenkx - General\Ubei\Stereo\init_palte\Image_2.bmp",
+										 r'D:\Fenkx\Fenkx - General\Ubei\Stereo\init_palte\template',
+										 r'D:\Fenkx\Fenkx - General\Ubei\Stereo\init_palte\result',
 										 r'./config/calibration_parameters.json',
 										 r'./config/rectify_parameters.json')
 tac = init_plane(init_plate_coordinates, 1)
-print(tac)
-# object_coordinates = get_coordinates(r"D:\fy.xie\fenx\fenx - General\Ubei\Stereo\stereo_img\1000w_edge\Image_5.bmp",
-# 									 r"D:\fy.xie\fenx\fenx - General\Ubei\Stereo\stereo_img\1000w_edge\Image_6.bmp",
-# 									 r'D:\fy.xie\fenx\fenx - General\Ubei\Stereo\stereo_img\1000w_edge\template',
-# 									 r'D:\fy.xie\fenx\fenx - General\Ubei\Stereo\stereo_img\1000w_edge\result',
-# 									 r'./config/calibration_parameters.json',
-# 									 r'./config/rectify_parameters.json')
-# points = {}
-# init_points = {}
-# for object_coordinate in object_coordinates:
-# 	init_X, init_Y, init_Z = get_plate_point(init_plate_coordinates, object_coordinate[0], object_coordinate[1])
-# 	depth = init_Z - object_coordinate[2]
-# 	points[f"{init_X, init_Y}"] = depth
-# 	init_points[f"{init_X, init_Y}"] = init_Z
-# print(object_coordinates)
-# print(init_points)
+# print(tac)
+object_coordinates = get_coordinates(r"D:\Fenkx\Fenkx - General\Ubei\Stereo\stereo_img\1000w_edge\Image_5.bmp",
+									 r"D:\Fenkx\Fenkx - General\Ubei\Stereo\stereo_img\1000w_edge\Image_6.bmp",
+									 r'D:\Fenkx\Fenkx - General\Ubei\Stereo\stereo_img\1000w_edge\template',
+									 r'D:\Fenkx\Fenkx - General\Ubei\Stereo\stereo_img\1000w_edge\result',
+									 r'./config/calibration_parameters.json',
+									 r'./config/rectify_parameters.json')
+points = {}
+init_points = {}
+for object_coordinate in object_coordinates:
+	init_X, init_Y, init_Z = get_plane_point(object_coordinate[0], object_coordinate[1], tac)
+	depth = init_Z - object_coordinate[2]
+	points[f"{init_X, init_Y}"] = depth
+	init_points[f"{init_X, init_Y}"] = init_Z
+print(object_coordinates)
+print(points)
 # # 显示匹配结果
 # cv2.namedWindow('Result', cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)
 # cv2.imshow('Result', result)
