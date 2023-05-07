@@ -1,25 +1,18 @@
 # -*- coding: UTF-8 -*-
 import json
-import os
 
 import cv2
 import numpy as np
 import open3d as o3d
 
-img_path = r'D:\fy.xie\fenx\fenx - General\Ubei\Stereo\stereo_img\1000w_25'
-img_left_rectified = cv2.imread(os.path.join(img_path, 'rect_left_image.png'))
-img_right_rectified = cv2.imread(os.path.join(img_path, 'rect_right_image.png'))
+from StereoRectify import get_rectify
 
-imgL = cv2.cvtColor(img_left_rectified, cv2.COLOR_BGR2GRAY)
-imgR = cv2.cvtColor(img_right_rectified, cv2.COLOR_BGR2GRAY)
+left_image = cv2.imread(r"D:\Fenkx\Fenkx - General\Ubei\Stereo\stereo_img\1000w_12_new\5000_1\Image_35.bmp")
+right_image = cv2.imread(r"D:\Fenkx\Fenkx - General\Ubei\Stereo\stereo_img\1000w_12_new\5000_1\Image_36.bmp")
 
-try:
-	with open('./config/rectify_parameters.json', mode="r", encoding="utf-8") as file:
-		rectify_parameters = json.load(file)
-		Q = np.asarray(rectify_parameters['Q'])  # 即上文标定得到的 Q
-		print("***rectify_parameters are loaded successfully!***")
-except:
-	print("Error: 没有找到文件或读取文件失败")
+rect_left_image, rect_right_image, Q = get_rectify(left_image, right_image,  r'./config/calibration_parameters.json', r'./config/rectify_parameters.json')
+imgL = cv2.cvtColor(rect_left_image, cv2.COLOR_BGR2GRAY)
+imgR = cv2.cvtColor(rect_right_image, cv2.COLOR_BGR2GRAY)
 
 try:
 	with open('./config/calibration_parameters.json', mode="r", encoding="utf-8") as file:
@@ -32,13 +25,12 @@ except:
 
 preFilterCap = 100
 minDisparity = 0
-numDisparities = 120
+numDisparities = 105
 blockSize = 0
 uniquenessRatio = 32
 speckleWindowSize = 225
 speckleRange = 1
 disp12MaxDiff = 1
-
 
 stereo = cv2.StereoSGBM_create(minDisparity=minDisparity,
 							   numDisparities=numDisparities * 16,
@@ -75,11 +67,11 @@ cv2.imshow("deepth_color", deepth_color)
 cv2.setMouseCallback("deepth_color", onMouse, 0)
 
 # 使用open3d库绘制点云
-colorImage = o3d.geometry.Image(img_left_rectified)
+colorImage = o3d.geometry.Image(rect_left_image)
 depthImage = o3d.geometry.Image(Z.astype(np.float32))
 rgbdImage = o3d.geometry.RGBDImage().create_from_color_and_depth(colorImage, depthImage, depth_scale=1, depth_trunc=300)
 
-height, width = img_left_rectified.shape[0:2]
+height, width = rect_left_image.shape[0:2]
 # 相机内参
 intrinsics = o3d.camera.PinholeCameraIntrinsic(width, height, cameraMatrix_left)
 # # 相机外参

@@ -107,10 +107,6 @@ def manual_select(left_image, right_image, calibration_json, rectify_json):
 		cv2.destroyAllWindows()
 
 
-# left_image = cv2.imread(r"D:\fy.xie\fenx\fenx - General\Ubei\Stereo\stereo_img\1000w_edge\Image_243.bmp")
-# right_image = cv2.imread(r"D:\fy.xie\fenx\fenx - General\Ubei\Stereo\stereo_img\1000w_edge\Image_244.bmp")
+# left_image = cv2.imread(r"D:\Fenkx\Fenkx - General\Ubei\Stereo\stereo_img\1000w_12_new\5000_1\Image_35.bmp")
+# right_image = cv2.imread(r"D:\Fenkx\Fenkx - General\Ubei\Stereo\stereo_img\1000w_12_new\5000_1\Image_36.bmp")
 # manual_select(left_image, right_image, r'./config/calibration_parameters.json', r'./config/rectify_parameters.json')
-# cv2.namedWindow("result", cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)
-# cv2.imshow("result", rect_left_image)
-# if cv2.waitKey(0) == ord("q"):
-# 	cv2.destroyAllWindows()

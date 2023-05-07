@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/../StereoVision/.idea/StereoVision.iml" filepath="$PROJECT_DIR$/../StereoVision/.idea/StereoVision.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/stereovision.iml" filepath="$PROJECT_DIR$/.idea/stereovision.iml" />
     </modules>
   </component>
 </project>

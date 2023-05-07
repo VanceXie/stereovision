@@ -1,7 +1,6 @@
 # -*- coding: UTF-8 -*-
 import os
 import re
-import time
 
 import cv2
 import numpy as np

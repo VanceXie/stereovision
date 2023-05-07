@@ -1,13 +1,12 @@
-# author: young
-import json
 import cv2
-import numpy as np
+from StereoRectify import get_rectify
 
-img_left_rectified = cv2.imread('./images/rect_left_image.png')
-img_right_rectified = cv2.imread('./images/rect_right_image.png')
+left_image = cv2.imread(r"D:\Fenkx\Fenkx - General\Ubei\Stereo\stereo_img\1000w_12_new\5000_1\Image_35.bmp")
+right_image = cv2.imread(r"D:\Fenkx\Fenkx - General\Ubei\Stereo\stereo_img\1000w_12_new\5000_1\Image_36.bmp")
 
-imgL = cv2.cvtColor(img_left_rectified, cv2.COLOR_BGR2GRAY)
-imgR = cv2.cvtColor(img_right_rectified, cv2.COLOR_BGR2GRAY)
+rect_left_image, rect_right_image, Q = get_rectify(left_image, right_image, r'./config/calibration_parameters.json', r'./config/rectify_parameters.json')
+imgL = cv2.cvtColor(rect_left_image, cv2.COLOR_BGR2GRAY)
+imgR = cv2.cvtColor(rect_right_image, cv2.COLOR_BGR2GRAY)
 
 # cv2.namedWindow('SGBM', cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)
 # cv2.createTrackbar('preFilterCap', 'SGBM', 100, 1000, lambda x: None)
@@ -63,25 +62,24 @@ speckleRange：视差连通条件，在计算一个视差点的连通区域时�
 # blockSize：SAD窗口大小，5~21之间为宜
 
 stereo = cv2.StereoSGBM_create(minDisparity=minDisparity,
-                               numDisparities=numDisparities * 16,
-                               blockSize=2 * blockSize + 1,
-                               P1=8 * P1 ** 2,
-                               P2=32 * P2 ** 2,
-                               disp12MaxDiff=disp12MaxDiff,
-                               preFilterCap=preFilterCap,
-                               uniquenessRatio=uniquenessRatio,
-                               speckleWindowSize=speckleWindowSize,
-                               speckleRange=speckleRange)
+							   numDisparities=numDisparities * 16,
+							   blockSize=2 * blockSize + 1,
+							   P1=8 * P1 ** 2,
+							   P2=32 * P2 ** 2,
+							   disp12MaxDiff=disp12MaxDiff,
+							   preFilterCap=preFilterCap,
+							   uniquenessRatio=uniquenessRatio,
+							   speckleWindowSize=speckleWindowSize,
+							   speckleRange=speckleRange)
 # stereo = cv2.StereoSGBM_create(numDisparities=numDisparities * 16, blockSize=blockSize)
 disparity = stereo.compute(imgL, imgR)
 
 # 计算出的视差是CV_16S格式-16位有符号整数（-32768…32767）
 disparity = cv2.normalize(disparity, None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8UC1)
 
-
 disparity = cv2.applyColorMap(disparity, 2)
 cv2.imshow('SGBM', disparity)
 key = cv2.waitKey(0)
 if key == ord("q"):
-    # break
-    cv2.destroyAllWindows()
+	# break
+	cv2.destroyAllWindows()
