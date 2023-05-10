@@ -92,6 +92,8 @@ def manual_select(left_image, right_image, calibration_json, rectify_json):
 	"""
 	HEIGHT, WIDTH = left_image.shape[:2]
 	rect_left_image, rect_right_image, Q = get_rectify(left_image, right_image, calibration_json, rectify_json)
+	cv2.imwrite(r"C:\Users\vance\Desktop\left.png",rect_left_image)
+	cv2.imwrite(r"C:\Users\vance\Desktop\right.png",rect_right_image)
 	imgcat_out = cat2images(rect_left_image, rect_right_image)
 	# 鼠标点击事件
 	global x1, x2, y1, y2, count, X, Y, Z
@@ -106,7 +108,7 @@ def manual_select(left_image, right_image, calibration_json, rectify_json):
 	if cv2.waitKey(0) == ord("q"):
 		cv2.destroyAllWindows()
 
-
-# left_image = cv2.imread(r"D:\Fenkx\Fenkx - General\Ubei\Stereo\stereo_img\1000w_12_new\5000_1\Image_35.bmp")
-# right_image = cv2.imread(r"D:\Fenkx\Fenkx - General\Ubei\Stereo\stereo_img\1000w_12_new\5000_1\Image_36.bmp")
+#
+# left_image = cv2.imread(r"D:\Fenkx\Fenkx - General\Ubei\Stereo\stereo_img\1000w_edge\Image_5.bmp")
+# right_image = cv2.imread(r"D:\Fenkx\Fenkx - General\Ubei\Stereo\stereo_img\1000w_edge\Image_6.bmp")
 # manual_select(left_image, right_image, r'./config/calibration_parameters.json', r'./config/rectify_parameters.json')
