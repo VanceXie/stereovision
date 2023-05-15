@@ -6,7 +6,7 @@ import numpy as np
 
 from tools.SerializeTools import config2json
 
-img_path = r'D:\Fenkx\Fenkx - General\Ubei\Stereo\stereo_img\1000w_edge'
+img_path = r'D:\Fenkx\Fenkx - General\Ubei\Stereo\stereo_img\1000w_12_new_new'
 
 CHECKERBOARD = (11, 8)  # 棋盘格内角点数
 CHESSBOARD_SIZE = 1.5  # 棋盘格大小，单位mm

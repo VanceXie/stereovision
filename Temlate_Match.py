@@ -10,12 +10,13 @@ from tools.DebugTools import timeit
 
 
 def get_coordinate(point_left, point_right, Q):
-	d = point_left[0] - point_right[0]
-	b = 1 / Q[3, 2]
-	f = Q[2, 3]
+	d = abs(point_left[0] - point_right[0])
+	b = 1 / np.array(Q)[3, 2]
+	f = np.array(Q)[2, 3]
 	Z = f * b / d
 	X = point_left[0] * b / d
 	Y = point_left[1] * b / d
+	# print(d)
 	return [X, Y, Z]
 
 
@@ -29,12 +30,15 @@ def is_gray(image):
 @timeit
 def get_match(image: np.ndarray, template: np.ndarray, method_flag: int = 5, start_coordinate: tuple = (0, 0), end_coordinate: tuple = (0, 0)):
 	"""
-	:param image: image of 3-D
-	:param template: image of 3-D
-	:param method_flag: index of [cv2.TM_SQDIFF, cv2.TM_SQDIFF_NORMED, cv2.TM_CCORR, cv2.TM_CCORR_NORMED, cv2.TM_CCOEFF, cv2.TM_CCOEFF_NORMED]
-	:param start_coordinate: start point of match, default (0, 0)
-	:param end_coordinate: start point of match, default (0, 0)
-	:return:
+	Args:
+		image: image of 3-D
+		template: image of 3-D
+		method_flag: index of [cv2.TM_SQDIFF, cv2.TM_SQDIFF_NORMED, cv2.TM_CCORR, cv2.TM_CCORR_NORMED, cv2.TM_CCOEFF, cv2.TM_CCOEFF_NORMED]
+		start_coordinate: start point of match, default (0, 0)
+		end_coordinate: end point of match, default (0, 0)
+
+	Returns: aoi of match, coordinate of top_left, coordinate of bottom_right
+
 	"""
 	# 转换为灰度图像
 	img_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -69,7 +73,6 @@ def get_rect_center(top_left, bottom_right):
 	return ((x1 + x2) / 2, (y1 + y2) / 2)
 
 
-@timeit
 def init_plane(points, degree=1):
 	import matplotlib.pyplot as plt
 	from scipy import interpolate
@@ -127,6 +130,18 @@ def get_plane_point(X, Y, tck):
 
 @timeit
 def get_coordinates(image_left: str, image_right: str, templates_dir: str, result_dir: str, calibration_json: str, rectify_json: str):
+	"""
+	Args:
+		image_left:
+		image_right:
+		templates_dir:
+		result_dir:
+		calibration_json: calibration_json file to load
+		rectify_json: rectify_json file to save
+
+	Returns:
+
+	"""
 	img_left = cv2.imread(image_left)
 	img_right = cv2.imread(image_right)
 	rect_left_image, rect_right_image, Q = get_rectify(img_left, img_right, calibration_json, rectify_json)
@@ -160,31 +175,28 @@ def get_coordinates(image_left: str, image_right: str, templates_dir: str, resul
 	return coordinates
 
 
-init_plate_coordinates = get_coordinates(r"D:\Fenkx\Fenkx - General\Ubei\Stereo\init_palte\Image_1.bmp",
-										 r"D:\Fenkx\Fenkx - General\Ubei\Stereo\init_palte\Image_2.bmp",
-										 r'D:\Fenkx\Fenkx - General\Ubei\Stereo\init_palte\template',
-										 r'D:\Fenkx\Fenkx - General\Ubei\Stereo\init_palte\result',
-										 r'./config/calibration_parameters.json',
-										 r'./config/rectify_parameters.json')
-tac = init_plane(init_plate_coordinates, 1)
-# print(tac)
-object_coordinates = get_coordinates(r"D:\Fenkx\Fenkx - General\Ubei\Stereo\stereo_img\1000w_edge\Image_5.bmp",
-									 r"D:\Fenkx\Fenkx - General\Ubei\Stereo\stereo_img\1000w_edge\Image_6.bmp",
-									 r'D:\Fenkx\Fenkx - General\Ubei\Stereo\stereo_img\1000w_edge\template',
-									 r'D:\Fenkx\Fenkx - General\Ubei\Stereo\stereo_img\1000w_edge\result',
+# init_plate_coordinates = get_coordinates(r"D:\Fenkx\Fenkx - General\Ubei\Stereo\init_palte\Image_1.bmp",
+# 										 r"D:\Fenkx\Fenkx - General\Ubei\Stereo\init_palte\Image_2.bmp",
+# 										 r'D:\Fenkx\Fenkx - General\Ubei\Stereo\init_palte\template',
+# 										 r'D:\Fenkx\Fenkx - General\Ubei\Stereo\init_palte\result',
+# 										 r'./config/calibration_parameters.json',
+# 										 r'./config/rectify_parameters.json')
+# tac = init_plane(init_plate_coordinates, 1)
+# # print(tac)
+object_coordinates = get_coordinates(r"D:\Fenkx\Fenkx - General\Ubei\Stereo\stereo_img\1000w_12_new_new\Image_33.bmp",
+									 r"D:\Fenkx\Fenkx - General\Ubei\Stereo\stereo_img\1000w_12_new_new\Image_34.bmp",
+									 r'D:\Fenkx\Fenkx - General\Ubei\Stereo\stereo_img\1000w_12_new_new\template2',
+									 r'D:\Fenkx\Fenkx - General\Ubei\Stereo\stereo_img\1000w_12_new_new\result',
 									 r'./config/calibration_parameters.json',
 									 r'./config/rectify_parameters.json')
-points = {}
-init_points = {}
-for object_coordinate in object_coordinates:
-	init_X, init_Y, init_Z = get_plane_point(object_coordinate[0], object_coordinate[1], tac)
-	depth = init_Z - object_coordinate[2]
-	points[f"{init_X, init_Y}"] = depth
-	init_points[f"{init_X, init_Y}"] = init_Z
+# points = {}
+# init_points = {}
+
+# for object_coordinate in object_coordinates:
+# 	init_X, init_Y, init_Z = get_plane_point(object_coordinate[0], object_coordinate[1], tac)
+# 	depth = init_Z - object_coordinate[2]
+# 	points[f"{init_X, init_Y}"] = depth
+# 	init_points[f"{init_X, init_Y}"] = init_Z
+
 print(object_coordinates)
-print(points)
-# # 显示匹配结果
-# cv2.namedWindow('Result', cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)
-# cv2.imshow('Result', result)
-# cv2.waitKey(0)
-# cv2.destroyAllWindows()
+# print(points)

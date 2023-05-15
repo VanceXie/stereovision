@@ -52,6 +52,42 @@ def get_rectify(left_image, right_image, calibration_json, rectify_json):
 	return rect_left_image, rect_right_image, Q
 
 
+def get_rectify_images(left_image, right_image, calibration_json, rectify_json):
+	"""
+	Args:
+		left_image:
+		right_image:
+		calibration_json: path of calibration parameters to read
+		rectify_json: path of rectify parameters to read
+
+	Returns: rect_left_image, rect_right_image, Q
+
+	"""
+	HEIGHT, WIDTH = left_image.shape[:2]
+	imageSize = (WIDTH, HEIGHT)
+	calibration_config: dict = json2config(calibration_json)
+	for var_name, var_val in calibration_config.items():
+		globals()[var_name] = var_val
+	rectify_config: dict = json2config(rectify_json)
+	for var_name, var_val in rectify_config.items():
+		globals()[var_name] = var_val
+	# 左右图需要分别计算校正查找映射表以及重映射,计算校正查找映射表
+	left_map_x, left_map_y = cv2.initUndistortRectifyMap(np.asarray(cameraMatrix_left),
+														 np.asarray(distCoeffs_left),
+														 np.asarray(R_l),
+														 np.asarray(P_l),
+														 imageSize, cv2.CV_32FC1)
+	right_map_x, right_map_y = cv2.initUndistortRectifyMap(np.asarray(cameraMatrix_right),
+														   np.asarray(distCoeffs_right),
+														   np.asarray(R_r),
+														   np.asarray(P_r),
+														   imageSize, cv2.CV_32FC1)
+	# 重映射
+	rect_left_image = cv2.remap(left_image, left_map_x, left_map_y, cv2.INTER_CUBIC)
+	rect_right_image = cv2.remap(right_image, right_map_x, right_map_y, cv2.INTER_CUBIC)
+	return rect_left_image, rect_right_image, Q
+
+
 def on_mouse(event, x, y, flags, param):
 	global x1, x2, y1, y2, count, X, Y, Z
 	if event == cv2.EVENT_LBUTTONDOWN:
@@ -92,8 +128,8 @@ def manual_select(left_image, right_image, calibration_json, rectify_json):
 	"""
 	HEIGHT, WIDTH = left_image.shape[:2]
 	rect_left_image, rect_right_image, Q = get_rectify(left_image, right_image, calibration_json, rectify_json)
-	cv2.imwrite(r"C:\Users\vance\Desktop\left.png",rect_left_image)
-	cv2.imwrite(r"C:\Users\vance\Desktop\right.png",rect_right_image)
+	# cv2.imwrite(r"C:\Users\vance\Desktop\left.png",rect_left_image)
+	# cv2.imwrite(r"C:\Users\vance\Desktop\right.png",rect_right_image)
 	imgcat_out = cat2images(rect_left_image, rect_right_image)
 	# 鼠标点击事件
 	global x1, x2, y1, y2, count, X, Y, Z
@@ -108,7 +144,6 @@ def manual_select(left_image, right_image, calibration_json, rectify_json):
 	if cv2.waitKey(0) == ord("q"):
 		cv2.destroyAllWindows()
 
-#
-# left_image = cv2.imread(r"D:\Fenkx\Fenkx - General\Ubei\Stereo\stereo_img\1000w_edge\Image_5.bmp")
-# right_image = cv2.imread(r"D:\Fenkx\Fenkx - General\Ubei\Stereo\stereo_img\1000w_edge\Image_6.bmp")
+# left_image = cv2.imread(r"D:\Fenkx\Fenkx - General\Ubei\Stereo\stereo_img\1000w_edge\Image_271.bmp")
+# right_image = cv2.imread(r"D:\Fenkx\Fenkx - General\Ubei\Stereo\stereo_img\1000w_edge\Image_272.bmp")
 # manual_select(left_image, right_image, r'./config/calibration_parameters.json', r'./config/rectify_parameters.json')
