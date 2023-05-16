@@ -5,6 +5,16 @@ from tools.ImageOperate import *
 
 
 def get_rectify(left_image, right_image, calibration_json, rectify_json):
+	"""
+	Args:
+		left_image:
+		right_image:
+		calibration_json: path of calibration parameters to read
+		rectify_json: path of rectify parameters to write
+
+	Returns:
+
+	"""
 	HEIGHT, WIDTH = left_image.shape[:2]
 	imageSize = (WIDTH, HEIGHT)
 	

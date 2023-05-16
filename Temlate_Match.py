@@ -183,20 +183,42 @@ def get_coordinates(image_left: str, image_right: str, templates_dir: str, resul
 # 										 r'./config/rectify_parameters.json')
 # tac = init_plane(init_plate_coordinates, 1)
 # # print(tac)
+
 object_coordinates = get_coordinates(r"D:\Fenkx\Fenkx - General\Ubei\Stereo\stereo_img\1000w_12_new_new\Image_33.bmp",
 									 r"D:\Fenkx\Fenkx - General\Ubei\Stereo\stereo_img\1000w_12_new_new\Image_34.bmp",
 									 r'D:\Fenkx\Fenkx - General\Ubei\Stereo\stereo_img\1000w_12_new_new\template2',
 									 r'D:\Fenkx\Fenkx - General\Ubei\Stereo\stereo_img\1000w_12_new_new\result',
 									 r'./config/calibration_parameters.json',
 									 r'./config/rectify_parameters.json')
-# points = {}
-# init_points = {}
 
-# for object_coordinate in object_coordinates:
-# 	init_X, init_Y, init_Z = get_plane_point(object_coordinate[0], object_coordinate[1], tac)
-# 	depth = init_Z - object_coordinate[2]
-# 	points[f"{init_X, init_Y}"] = depth
-# 	init_points[f"{init_X, init_Y}"] = init_Z
+T = [
+	[
+		0.013218012830026597,
+		0.9995779667410806,
+		-0.009385276929298329,
+		0.0
+	],
+	[
+		0.9988314330874531,
+		-0.02789855347288712,
+		-0.04636520313937374,
+		0.0
+	],
+	[
+		-0.04648712093999388,
+		-0.00809685864318,
+		-0.9988804655787423,
+		0.0
+	],
+	[
+		0.0,
+		0.0,
+		0.0,
+		1.0
+	]
+]
+T = np.linalg.inv(T)
+object_coordinates_trans = np.dot(T, np.vstack((object_coordinates.T, [1, 1, 1])))
 
 print(object_coordinates)
-# print(points)
+print(np.array(object_coordinates_trans))
